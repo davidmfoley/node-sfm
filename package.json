@@ -1,0 +1,29 @@
+{
+  "name": "simple-fucking-migrations",
+  "version": "1.0.0",
+  "description": "simple fucking migrations for postgresql",
+  "main": "index.js",
+
+  "scripts": {
+    "test": "./node_modules/.bin/mocha test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidmfoley/simple-fucking-migrations.git"
+  },
+  "author": "",
+  "license": "All rights reserved",
+  "dependencies": {
+    "async": "^0.9.0",
+    "lodash": "^2.4.1"
+  },
+  "devDependencies": {
+    "chai": "^1.9.2",
+    "gulp": "^3.8.10",
+    "gulp-jshint": "^1.9.0",
+    "gulp-spawn-mocha": "^0.5.2",
+    "jshint-stylish": "^1.0.0",
+    "mocha": "^2.0.0",
+    "mocha-fengshui-reporter": "^1.0.3"
+  }
+}
