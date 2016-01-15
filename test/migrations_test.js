@@ -32,6 +32,28 @@ describe('migrations', function() {
     });
   });
 
+  it('errors when there is a bad migration', function(done) {
+    migrations(databaseUrl).fromDirectory(__dirname + '/migrations/error').run(function(err, result) {
+      expect(!!err).to.equal(true);
+      expect(err.failedMigration).to.equal('001-cause-error.sql');
+      expect(!!err.sqlError).to.equal(true);
+      done();
+    });
+  });
+
+  it('is transactional when an error occurs', function(done) {
+    migrations(databaseUrl).fromDirectory(__dirname + '/migrations/midpoint-error').run(function(err, result) {
+      expect(!!err).to.equal(true);
+      expect(err.failedMigration).to.equal('003-delete-records-with-error.sql');
+      expect(!!err.sqlError).to.equal(true);
+      query('select count(*) as count from foo', function(err, result) {
+        if (err) return done(err);
+        expect(result.rows[0].count).to.equal('3');
+        done();
+      });
+    });
+  });
+
   it('handles empty directory', function(done) {
     migrations(databaseUrl).fromDirectory(__dirname + '/migrations/empty').run(function(err, result) {
       expect(err).to.equal(undefined);
