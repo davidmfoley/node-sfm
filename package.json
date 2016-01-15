@@ -1,6 +1,9 @@
 {
   "name": "simple-fucking-migrations",
   "version": "1.0.0",
+  "bin": {
+    "sfm": "./cli"
+  },
   "description": "simple fucking migrations for postgresql",
   "main": "index.js",
   "scripts": {
