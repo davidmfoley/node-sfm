@@ -1,6 +1,6 @@
 {
-  "name": "simple-fucking-migrations",
-  "version": "1.0.0",
+  "name": "sfm",
+  "version": "0.1.0",
   "bin": {
     "sfm": "./cli"
   },
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/davidmfoley/simple-fucking-migrations.git"
+    "url": "https://github.com/davidmfoley/sfm.git"
   },
   "author": "",
   "license": "All rights reserved",
