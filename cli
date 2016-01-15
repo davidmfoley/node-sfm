@@ -1,0 +1,48 @@
+#! /usr/bin/env node
+var migrations = require('./lib/migrations');
+
+var args = process.argv.slice(2);
+
+var command = args[0];
+var database = args[1];
+var migrationsPath = args[2];
+
+var handlers = {
+  run: function() {
+    migrations(database).fromDirectory(migrationsPath).run(function(err, result) {
+      if (err) {
+        console.log(err);
+        return process.exit(1);
+      }
+      printResult(result);
+      process.exit();
+    });
+  },
+  info: function() {
+    migrations(database).fromDirectory(migrationsPath).info(function(err, info) {
+      if (err) {
+        console.log(err);
+        return process.exit(1);
+      }
+      printInfo(info);
+      process.exit();
+    });
+  }
+};
+
+function printResult(result) {
+  console.log(result);
+}
+
+function printInfo(info) {
+  console.log(info.applied);
+}
+
+var handler = handlers[command];
+
+if (!handler) {
+  console.log('Usage: sfm [database url] [' + Object.keys(handlers).join('|') + '] [migrations path]');
+  process.exit(1);
+}
+
+handler(database);

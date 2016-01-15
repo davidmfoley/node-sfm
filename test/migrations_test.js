@@ -83,6 +83,13 @@ describe('migrations', function() {
       });
     });
 
+    it('can get info', function(done) {
+      migrations(databaseUrl).fromDirectory(__dirname + '/migrations/sql').info(function(err, info) {
+        expect(info.applied.length).to.equal(2);
+        done(err);
+      });
+    });
+
     it('only runs each migration once', function(done) {
       migrations(databaseUrl).fromDirectory(__dirname + '/migrations/sql').run(function(err, rerunResult) {
         if (err) return done(err);
