@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 var path = require('path');
 var migrations = require('./lib/migrations');
+var chalk = require('chalk');
 
 var args = process.argv.slice(2);
 
@@ -40,11 +41,14 @@ var handlers = {
 };
 
 function printResult(result) {
-  console.log(result);
 }
 
 function printInfo(info) {
-  console.log(info.applied);
+  console.log(chalk.magenta('Applied') + '                  | ' + chalk.magenta('Name'));
+
+  info.applied.map(function(migration) {
+    console.log(chalk.green(migration.applied.toISOString()) + ' | ' + chalk.yellow(migration.name));
+  });
 }
 
 var handler = handlers[command];
