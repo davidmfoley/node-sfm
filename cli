@@ -1,11 +1,12 @@
 #! /usr/bin/env node
+var path = require('path');
 var migrations = require('./lib/migrations');
 
 var args = process.argv.slice(2);
 
 var command = args[0];
 var database = args[1];
-var migrationsPath = args[2];
+var migrationsPath = path.normalize(path.join(process.cwd(), args[2]));
 
 var handlers = {
   run: function() {
