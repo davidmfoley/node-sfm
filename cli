@@ -5,6 +5,7 @@ var chalk = require('chalk');
 
 var args = process.argv.slice(2);
 
+
 var command = args[0];
 var database = args[1];
 
@@ -53,8 +54,8 @@ function printInfo(info) {
 
 var handler = handlers[command];
 
-if (!handler || (command === 'run' && migrationsPath)) {
-  console.log('Usage: sfm [database url] [' + Object.keys(handlers).join('|') + '] [migrations path]');
+if (!handler || (command === 'run' && !migrationsPath)) {
+  console.log('Usage: sfm [' + Object.keys(handlers).join('|') + '] [database url] [migrations path]');
   process.exit(1);
 }
 
