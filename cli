@@ -6,10 +6,14 @@ var args = process.argv.slice(2);
 
 var command = args[0];
 var database = args[1];
-var migrationsPath = path.normalize(args[2]);
 
-if (!path.isAbsolute(migrationsPath)) {
-  migrationsPath = path.normalize(path.join(process.cwd(), migrationsPath));
+var migrationsPath;
+if (args[2]) {
+  migrationsPath = path.normalize(args[2]);
+
+  if (!path.isAbsolute(migrationsPath)) {
+    migrationsPath = path.normalize(path.join(process.cwd(), migrationsPath));
+  }
 }
 
 var handlers = {
@@ -45,7 +49,7 @@ function printInfo(info) {
 
 var handler = handlers[command];
 
-if (!handler) {
+if (!handler || (command === 'run' && migrationsPath)) {
   console.log('Usage: sfm [database url] [' + Object.keys(handlers).join('|') + '] [migrations path]');
   process.exit(1);
 }
