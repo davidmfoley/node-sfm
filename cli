@@ -52,6 +52,11 @@ var handlers = {
 };
 
 function printResult(result) {
+  result.applied.map(function(migration) {
+    if (migration.results) {
+      console.log(chalk.white(JSON.stringify(migration.results)));
+    }
+  });
 }
 
 function printInfo(info) {
