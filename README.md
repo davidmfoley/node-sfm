@@ -48,5 +48,12 @@ Find out which migrations have been run:
 $ sfm info my_local_db
 ```
 
+Test your migrations (note: terrible, terrible SQL query output at present)
+
+This will run all unapplied migrations in a transaction and roll back at the end.
+
+```
+$ sfm test my_local_db db/migrations/
+```
 ### What about down migrations?
 Fuck, no.
