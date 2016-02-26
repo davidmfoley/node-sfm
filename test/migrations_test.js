@@ -62,6 +62,35 @@ describe('migrations', function() {
     });
   });
 
+  describe('test mode', function() {
+    var result;
+
+    beforeEach(function(done) {
+      migrations(databaseUrl).fromDirectory(__dirname + '/migrations/sql').test(function(err, result_) {
+        result = result_;
+        done(err);
+      });
+    });
+
+    it('does not commit to the db',  function(done) {
+      migrations(databaseUrl).fromDirectory(__dirname + '/migrations/sql').info(function(err, info) {
+        expect(info.applied.length).to.equal(0);
+        done(err);
+      });
+    });
+
+    it('returns metadata about the migration', function() {
+      expect(result.applied.length).to.equal(2);
+    });
+
+    it('handles SQL files', function(done) {
+      query('select * from foo', function(err, result) {
+        expect(err).to.be.ok();
+        done();
+      });
+    });
+  });
+
   describe('with SQL files', function() {
     var result;
 
