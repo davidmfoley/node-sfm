@@ -26,7 +26,7 @@ Fucking PostgreSQL. What else?
 
 You pass it the following arguments:
 
-- the command: either "run" or "info"
+- the command: either "run", "test", or "info"
 
 - the database url (or database name for localhost)
 
@@ -51,6 +51,8 @@ $ sfm info my_local_db
 Test your migrations (note: terrible, terrible SQL query output at present)
 
 This will run all unapplied migrations in a transaction and roll back at the end.
+
+It also logs a bunch of stuff that is marginally decipherable depending on your personal level of masochism.
 
 ```
 $ sfm test my_local_db db/migrations/
