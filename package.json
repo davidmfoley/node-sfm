@@ -5,7 +5,7 @@
     "sfm": "./cli"
   },
   "description": "simple fucking migrations for postgresql",
-  "main": "index.js",
+  "main": "lib/migrations.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha test/"
   },
