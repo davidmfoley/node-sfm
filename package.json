@@ -11,12 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/davidmfoley/sfm.git"
+    "url": "https://github.com/davidmfoley/node-sfm.git"
   },
   "author": "",
   "license": "All rights reserved",
   "dependencies": {
-    "async": "^0.9.2",
+    "async": "^2.0.1",
     "chalk": "^1.1.1",
     "pg": "^4.4.3"
   },
