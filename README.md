@@ -1,18 +1,18 @@
 ## SIMPLE FUCKING MIGRATIONS
 
+The simplest and most profane postgresql migration tool.
+
 ### Migrations?
 
 You write fucking scripts. This tool runs them and remembers which ones have been run.
 
 ### What kind of fucking scripts?
 1. Fucking SQL scripts.
-2. Javascript files that export a function that takes a pg client and calls a callback:
+2. Javascript files that export a function that takes a pg client and a done callback.
 
-```javascript
-module.exports = function(client, callback) {
-  // call the callback when you are done, passing an error if you fail.
-}
-```
+Check out https://github.com/brianc/node-postgres/wiki/Client for more information on the client interface.
+
+See the /examples directory for a couple of simple examples.
 
 ### In what order?
 
@@ -38,15 +38,21 @@ Defaults to pwd which probably is fucking stupid so set this fucking variable.
 
 ### examples
 
+#### sfm run
+
 Run migrations:
 ```
 $ sfm run my_local_db db/migrations/
 ```
 
+#### sfm info
+
 Find out which migrations have been run:
 ```
 $ sfm info my_local_db
 ```
+
+#### sfm test
 
 Test your migrations (note: terrible, terrible SQL query output at present)
 
@@ -57,5 +63,6 @@ It also logs a bunch of stuff that is marginally decipherable depending on your 
 ```
 $ sfm test my_local_db db/migrations/
 ```
+
 ### What about down migrations?
 Fuck, no.
