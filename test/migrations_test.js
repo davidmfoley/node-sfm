@@ -6,18 +6,18 @@ var async = require('async');
 
 describe('migrations', function() {
   beforeEach(function(cb) {
-    pg.connect(process.env.SFM_TEST_DATABASE_URL || 'postgres://localhost/sfm_test', function(err, client, done) {
-      if (err) return done(err);
-      var getTables = "select table_name from information_schema.tables where table_schema='public';";
-      client.query(getTables, function(err, result) {
-        if (err) return done(err);
-        async.map(result.rows, function(row, cb) {
-          var dropTable = 'DROP TABLE ' + row.table_name + ';';
-          client.query(dropTable, cb);
-        }, function(err) {
-          done();
-          cb(err);
-        });
+    var connectionString = process.env.SFM_TEST_DATABASE_URL || 'postgresql://localhost/sfm_test';
+    var pool = new pg.Pool({ connectionString: connectionString });
+
+    var getTables = "select table_name from information_schema.tables where table_schema='public';";
+    pool.query(getTables, function(err, result) {
+      if (err) return cb(err);
+      async.map(result.rows, function(row, cb) {
+        var dropTable = 'DROP TABLE ' + row.table_name + ';';
+        pool.query(dropTable, cb);
+      }, function(err) {
+        pool.end();
+        cb(err);
       });
     });
   });
