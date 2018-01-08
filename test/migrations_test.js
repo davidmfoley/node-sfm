@@ -132,17 +132,27 @@ describe('migrations', function() {
   });
 
   function query(sql, cb) {
-    pg.connect(databaseUrl, function(err, client, pgDone) {
+    const client = new pg.Client({ connectionString: databaseUrl });
+    client.connect(err => {
       if (err) return cb(err);
-      client.query(sql, function(err, result) {
-        pgDone();
+      client.query(sql, (err, result) => {
+        client.end();
         cb(err, result);
       });
     });
+
   }
 
   it('handles JS files', function(done) {
     migrations(databaseUrl).fromDirectory(__dirname + '/migrations/js').run(function(err, result) {
+      expect(err).to.equal(undefined);
+      expect(result.applied.length).to.equal(2);
+      done(err);
+    });
+  });
+
+  it('handles JS files with promises', function(done) {
+    migrations(databaseUrl).fromDirectory(__dirname + '/migrations/js-promise').run(function(err, result) {
       expect(err).to.equal(undefined);
       expect(result.applied.length).to.equal(2);
       done(err);

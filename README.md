@@ -4,11 +4,22 @@ The simplest and most profane postgresql migration tool.
 
 ### Migrations?
 
-You write fucking scripts. This tool runs them and remembers which ones have been run.
+You write fucking scripts.
+
+This tool runs them and remembers which ones have been run, so each one is only fucking run once.
 
 ### What kind of fucking scripts?
 1. Fucking SQL scripts.
-2. Javascript files that export a function that takes a pg client and a done callback.
+2. Javascript files
+
+  - that export a single function that:
+
+    - takes a pg client and a done callback
+
+      - `module.exports = (client, done) => { client.query('CREATE TABLE WHATEVER (...)', cb); }`
+
+    - takes a pg client and returns a promise (a la async/await)
+      - `module.exports = async (client) => { await client.query('CREATE TABLE WHATEVER (...)'); }`
 
 Check out https://github.com/brianc/node-postgres/wiki/Client for more information on the client interface.
 
