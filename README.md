@@ -9,17 +9,33 @@ You write fucking scripts.
 This tool runs them and remembers which ones have been run, so each one is only fucking run once.
 
 ### What kind of fucking scripts?
-1. Fucking SQL scripts.
+#### Fucking SQL scripts.
+
+Not much to fucking say about this. 
+
 2. Javascript files
 
-  - that export a single function that:
 
-    - takes a pg client and a done callback
+Javascript migrations can either use callbacks or promises (async/await).
 
-      - `module.exports = (client, done) => { client.query('CREATE TABLE WHATEVER (...)', cb); }`
+##### Callback example:
 
-    - takes a pg client and returns a promise (a la async/await)
-      - `module.exports = async (client) => { await client.query('CREATE TABLE WHATEVER (...)'); }`
+Not preferred, but supported. Upgrade your node version, yo.
+
+```
+module.exports = (client, done) => {
+  client.query('CREATE TABLE whatever (who_cares text)', done);
+}
+```
+
+##### Async/await example
+
+
+```
+module.exports = async (client) => {
+  await client.query('CREATE TABLE whatever (who_cares text)');
+}
+```
 
 Check out https://github.com/brianc/node-postgres/wiki/Client for more information on the client interface.
 
