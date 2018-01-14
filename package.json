@@ -1,13 +1,14 @@
 {
   "name": "sfm",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "bin": {
     "sfm": "./cli"
   },
   "description": "simple fucking migrations for postgresql",
   "main": "lib/migrations.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha test/"
+    "test": "./node_modules/.bin/mocha test/",
+    "watch": "gulp watch"
   },
   "repository": {
     "type": "git",
