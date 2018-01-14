@@ -8,17 +8,23 @@ You write fucking scripts.
 
 This tool runs them and remembers which ones have been run, so each one is only fucking run once.
 
+If there is an error running migration, the migration process is stopped and all migrations are rolled back.
+
 ### What kind of fucking scripts?
-#### Fucking SQL scripts.
+
+Two fucking kinds:
+
+#### 1. Fucking SQL scripts.
 
 Not much to fucking say about this. 
 
-2. Javascript files
-
+#### 2. Javascript files
 
 Javascript migrations can either use callbacks or promises (async/await).
 
-##### Callback example:
+Each javascript migration exports one fucking function that has one of the two following signatures:
+
+##### Callbacks
 
 Not preferred, but supported. Upgrade your node version, yo.
 
@@ -28,9 +34,9 @@ module.exports = (client, done) => {
 }
 ```
 
-##### Async/await example
+##### Async/await or promise
 
-
+If your migration funciton returns a promise, SFM will wait for that promise to resolve.
 ```
 module.exports = async (client) => {
   await client.query('CREATE TABLE whatever (who_cares text)');
