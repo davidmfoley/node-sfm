@@ -45,7 +45,7 @@ module.exports = async (client) => {
 }
 ```
 
-Check out https://github.com/brianc/node-postgres/wiki/Client for more information on the client interface.
+Check out https://node-postgres.com/features/queries for more information on the client interface.
 
 See the /examples directory for a couple of simple examples.
 
