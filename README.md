@@ -1,28 +1,30 @@
-## SIMPLE FUCKING MIGRATIONS
+## SIMPLY FABULOUS MIGRATIONS
 
-The simplest and most profane postgresql migration tool.
+The simplest postgresql migration tool.
 
 ### Migrations?
 
-You write fucking scripts.
+You write fabulous scripts.
 
-This tool runs them and remembers which ones have been run, so each one is only fucking run once.
+This tool runs them and remembers which ones have been run, so each one is only fabulously run once.
+
+All of the scripts are run inside a single transaction.
 
 If there is an error running migration, the migration process is stopped and all migrations are rolled back.
 
-### What kind of fucking scripts?
+### What kind of fabulous scripts?
 
-Two fucking kinds:
+Two fabulous kinds:
 
-#### 1. Fucking SQL scripts.
+#### 1. Fabulous SQL scripts.
 
-Not much to fucking say about this. 
+Not much to fabulously say about this. 
 
 #### 2. Javascript files
 
 Javascript migrations can either use callbacks or promises (async/await).
 
-Each javascript migration exports one fucking function that has one of the two following signatures:
+Each javascript migration exports one fabulous function that has one of the two following signatures:
 
 ##### Callbacks
 
@@ -36,7 +38,7 @@ module.exports = (client, done) => {
 
 ##### Async/await or promise
 
-If your migration funciton returns a promise, SFM will wait for that promise to resolve.
+If your migration function returns a promise, SFM will wait for that promise to resolve.
 ```
 module.exports = async (client) => {
   await client.query('CREATE TABLE whatever (who_cares text)');
@@ -49,13 +51,13 @@ See the /examples directory for a couple of simple examples.
 
 ### In what order?
 
-The scripts will be sorted alphabetically by filename so use some sort of fucking system with dates or numbers or some shit for naming the files.
+The scripts will be sorted alphabetically by filename so use some sort of fabulous system with dates or numbers or something for naming the files.
 
 ### For which databases?
 
-Fucking PostgreSQL. What else?
+PostgreSQL. What else?
 
-### How do I run this fucking thing?
+### How do I run this fabulous thing?
 
 You pass it the following arguments:
 
@@ -63,11 +65,11 @@ You pass it the following arguments:
 
 - the database url (or database name for localhost)
 
-Guess what this is? That's right: a fucking postgresql url!
+Guess what this is? That's right: a fabulous postgresql url!
 
 - the path to the migration scripts
 
-Defaults to pwd which probably is fucking stupid so set this fucking variable.
+Defaults to pwd which probably is fabulously stupid so set this fabulous variable.
 
 ### examples
 
@@ -89,13 +91,11 @@ $ sfm info my_local_db
 
 Test your migrations (note: terrible, terrible SQL query output at present)
 
-This will run all unapplied migrations in a transaction and roll back at the end.
-
-It also logs a bunch of stuff that is marginally decipherable depending on your personal level of masochism.
+This will run all unapplied migrations in a transaction and roll back at the end, while logging some information about the queries that were executed.
 
 ```
 $ sfm test my_local_db db/migrations/
 ```
 
 ### What about down migrations?
-Fuck, no.
+Fabulous idea, but no.
