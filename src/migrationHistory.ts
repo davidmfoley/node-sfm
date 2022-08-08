@@ -1,6 +1,8 @@
+import { DatabaseClient } from './db'
+
 const migrationsTableName = 'sfm_migrations'
 
-export default function migrationHistory(client) {
+export default function migrationHistory(client: DatabaseClient) {
   function ensureMigrationsTableCreated(cb) {
     client.query(
       'create table if not exists ' +
@@ -23,7 +25,7 @@ export default function migrationHistory(client) {
   function getAppliedMigrations(cb) {
     client.query(
       'select applied, name from ' + migrationsTableName + ' order by applied',
-      function (err, result) {
+      function (err: any, result) {
         if (err) {
           // sfm table not yet setup, no migrations applied
           if (err.code === '42P01') return cb(undefined, [])
