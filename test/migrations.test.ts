@@ -5,38 +5,25 @@ import assert from 'node:assert'
 import { noOpLogger } from '../src/logger'
 var expect = require('chai').expect
 var pg = require('pg')
-var async = require('async')
 
 describe('sfm', function () {
   var connectionString =
     process.env.SFM_TEST_DATABASE_URL || 'postgresql://localhost/sfm_test'
 
   const migrations = sfm(connectionString, { logger: noOpLogger })
-  beforeEach(function (cb) {
-    var pool = new pg.Pool({ connectionString: connectionString })
+
+  beforeEach(async () => {
+    var pool = new pg.Pool({ connectionString })
 
     var getTables =
       "select table_name from information_schema.tables where table_schema='public';"
 
-    pool.query(getTables, function (err, result) {
-      if (err) return cb(err)
-      async.map(
-        result.rows,
-        function (row, cb) {
-          var dropTable = 'DROP TABLE ' + row.table_name + ';'
-          pool.query(dropTable, cb)
-        },
-        function (err) {
-          pool.end()
-          cb(err)
-        }
-      )
-    })
+    const result = await pool.query(getTables)
+    for (const row of result.rows) {
+      await pool.query(`DROP TABLE ${row.table_name}`)
+    }
+    await pool.end()
   })
-
-  //afterEach(pgDone);
-  var databaseUrl =
-    process.env.SFM_TEST_DATABASE_URL || 'postgres://localhost/sfm_test'
 
   it('errors with non-existent file path', function (done) {
     migrations
@@ -167,7 +154,7 @@ describe('sfm', function () {
   })
 
   function query(sql, cb) {
-    const client = new pg.Client({ connectionString: databaseUrl })
+    const client = new pg.Client({ connectionString })
     client.connect((err) => {
       if (err) return cb(err)
       client.query(sql, (err, result) => {
