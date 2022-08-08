@@ -1,21 +1,16 @@
+import { DatabaseClient } from '../db'
+import { Logger } from '../logger'
 import migrationHistory from '../migrationHistory'
 
-export function getInfo(client, source, logger, cb) {
+export const getInfo = async (
+  client: DatabaseClient,
+  source: any,
+  _logger: Logger
+) => {
   const history = migrationHistory(client)
-  source(function (err, migrations) {
-    if (err) {
-      return cb(err)
-    }
+  const migrations = await source()
+  const unapplied = await history.filterAlreadyApplied(migrations)
 
-    history.filterAlreadyApplied(migrations, function (err, unapplied) {
-      if (err) return cb(err)
-
-      history.getAppliedMigrations(function (err, applied) {
-        if (err) {
-          return cb(err)
-        }
-        cb(undefined, { applied: applied, unapplied: unapplied })
-      })
-    })
-  })
+  const applied = await history.getAppliedMigrations()
+  return { applied: applied, unapplied: unapplied }
 }

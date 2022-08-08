@@ -1,7 +1,5 @@
-import { Migration } from './Migration'
-
-export type AppliedMigration = (Migration & { result: any })[]
+export type AppliedMigration = { name: string }
 
 export type MigrationResult = {
-  applied: AppliedMigration
+  applied: AppliedMigration[]
 }

@@ -29,53 +29,38 @@ describe('sfm', function () {
     await pool.end()
   })
 
-  it('errors with non-existent file path', function (done) {
-    migrations
-      .fromDirectory(__dirname + '/doesnotexist')
-      .run(function (err, result) {
-        assert.ok(err)
-        done()
-      })
+  it('errors with non-existent file path', async () => {
+    await assert.rejects(
+      migrations.fromDirectory(__dirname + '/doesnotexist').run()
+    )
   })
 
-  it('errors when there is a bad migration', function (done) {
-    migrations
-      .fromDirectory(__dirname + '/migrations/error')
-      .run(function (err) {
-        assert.ok(err)
-        assert.strictEqual(err.failedMigration, '001-cause-error.sql')
-        assert.ok(err.sqlError)
-        done()
-      })
+  it('errors when there is a bad migration', async () => {
+    await assert.rejects(
+      migrations.fromDirectory(__dirname + '/migrations/error').run(),
+      {
+        failedMigration: '001-cause-error.sql',
+      }
+    )
   })
 
-  it('is transactional when an error occurs', function (done) {
-    migrations
-      .fromDirectory(__dirname + '/migrations/midpoint-error')
-      .run(function (err) {
-        assert.ok(err)
-        assert.strictEqual(
-          err.failedMigration,
-          '003-delete-records-with-error.sql'
-        )
-        assert.ok(err.sqlError)
+  it('is transactional when an error occurs', async () => {
+    await assert.rejects(
+      migrations.fromDirectory(__dirname + '/migrations/midpoint-error').run(),
+      {
+        failedMigration: '003-delete-records-with-error.sql',
+      }
+    )
 
-        pool.query('select count(*) as count from foo', function (err, result) {
-          if (err) return done(err)
-          assert.strictEqual(result.rows[0].count, '3')
-          done()
-        })
-      })
+    const result = await pool.query('select count(*) as count from foo')
+    assert.strictEqual(result.rows[0].count, '3')
   })
 
-  it('handles empty directory', function (done) {
-    migrations
+  it('handles empty directory', async () => {
+    const result = await migrations
       .fromDirectory(__dirname + '/migrations/empty')
-      .run(function (err, result) {
-        assert.strictEqual(err, undefined)
-        assert.strictEqual(result.applied.length, 0)
-        done(err)
-      })
+      .run()
+    assert.strictEqual(result.applied.length, 0)
   })
 
   describe('test mode', function () {
@@ -87,37 +72,32 @@ describe('sfm', function () {
         .test()
     })
 
-    it('does not commit to the db', function (done) {
-      migrations
+    it('does not commit to the db', async () => {
+      const info = await migrations
         .fromDirectory(__dirname + '/migrations/sql')
-        .info(function (err, info) {
-          assert.strictEqual(info.applied.length, 0)
-          done(err)
-        })
+        .info()
+
+      assert.strictEqual(info.applied.length, 0)
     })
 
     it('returns metadata about the migration', function () {
       assert.strictEqual(result.applied.length, 2)
     })
 
-    it('handles SQL files', function (done) {
-      pool.query('select * from foo', function (err, result) {
-        assert.strictEqual(err.message, 'relation "foo" does not exist')
-        done()
+    it('handles SQL files', async () => {
+      await assert.rejects(pool.query('select * from foo'), {
+        message: 'relation "foo" does not exist',
       })
     })
   })
 
   describe('with SQL files', function () {
-    var result
+    let result
 
-    beforeEach(function (done) {
-      migrations
+    beforeEach(async () => {
+      result = await migrations
         .fromDirectory(__dirname + '/migrations/sql')
-        .run(function (err, result_) {
-          result = result_
-          done(err)
-        })
+        .run()
     })
 
     it('returns metadata about the migration', function () {
@@ -129,55 +109,40 @@ describe('sfm', function () {
       assert.strictEqual(result.rows.length, 3)
     })
 
-    it('can get info', function (done) {
-      migrations
+    it('can get info', async function () {
+      const info = await migrations
         .fromDirectory(__dirname + '/migrations/sql')
-        .info(function (err, info) {
-          assert.strictEqual(info.applied.length, 2)
-          done(err)
-        })
+        .info()
+      assert.strictEqual(info.applied.length, 2)
     })
 
-    it('only runs each migration once', function (done) {
-      migrations
+    it('only runs each migration once', async () => {
+      const rerunResult = await migrations
         .fromDirectory(__dirname + '/migrations/sql')
-        .run(function (err, rerunResult) {
-          if (err) return done(err)
-          assert.strictEqual(rerunResult.applied.length, 0)
-          done()
-        })
+        .run()
+      assert.strictEqual(rerunResult.applied.length, 0)
     })
   })
 
-  it('handles JS files', function (done) {
-    migrations
+  it('handles JS files', async () => {
+    const result = await migrations
       .fromDirectory(__dirname + '/migrations/js')
-      .run(function (err, result) {
-        assert.strictEqual(result.applied.length, 2)
-        done(err)
-      })
+      .run()
+    assert.strictEqual(result.applied.length, 2)
   })
 
-  it('handles JS files with promises', function (done) {
-    migrations
+  it('handles JS files with promises', async () => {
+    const result = await migrations
       .fromDirectory(__dirname + '/migrations/js-promise')
-      .run(function (err, result) {
-        assert.strictEqual(result.applied.length, 2)
-        done(err)
-      })
+      .run()
+    assert.strictEqual(result.applied.length, 2)
   })
 
-  it('executes JS files once', function (done) {
-    migrations
+  it('executes JS files once', async () => {
+    await migrations.fromDirectory(__dirname + '/migrations/js').run()
+    const result = await migrations
       .fromDirectory(__dirname + '/migrations/js')
-      .run(function (err, result) {
-        if (err) return done(err)
-        migrations
-          .fromDirectory(__dirname + '/migrations/js')
-          .run(function (err, result) {
-            assert.strictEqual(result.applied.length, 0)
-            done(err)
-          })
-      })
+      .run()
+    assert.strictEqual(result.applied.length, 0)
   })
 })

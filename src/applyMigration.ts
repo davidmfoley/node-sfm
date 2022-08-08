@@ -5,51 +5,27 @@ import { MigrationHistory } from './migrationHistory'
 
 export const applyMigration =
   (client: DatabaseClient, history: MigrationHistory, logger: Logger) =>
-  (migration: Migration, cb: (err?: Error) => void) => {
-    function handleError(err) {
-      logger.migrationFailed(migration, err)
-
-      client.query('ROLLBACK', function (rollbackErr) {
-        if (rollbackErr) {
-          // log...
-        }
-
-        //TODO: real error
-        var error = new Error(
-          'Migration failed: ' + migration.name + ':' + err.message
-        ) as any
-        error.failedMigration = migration.name
-        error.sqlError = err
-
-        return cb(error)
-      })
-    }
-
+  async (migration: Migration) => {
     logger.migrationStart(migration)
 
-    client.query('BEGIN;', function (err) {
-      if (err) return cb(err)
-      function handleResult(err?: Error) {
-        if (err) {
-          return handleError(err)
-        }
+    try {
+      await client.query('BEGIN;')
+      await migration.action(client)
+      await history.markAsComplete(migration.name)
+      await client.query('COMMIT;')
 
-        history.markAsComplete(migration.name, function (err) {
-          if (err) {
-            return handleError(err)
-          }
+      logger.migrationComplete(migration)
+    } catch (err) {
+      logger.migrationFailed(migration, err)
 
-          logger.migrationComplete(migration)
-          client.query('COMMIT;', cb)
-        })
-      }
+      await client.query('ROLLBACK')
+      //TODO: real error
+      var error = new Error(
+        'Migration failed: ' + migration.name + ':' + err.message
+      ) as any
+      error.failedMigration = migration.name
+      error.sqlError = err
 
-      var result = migration.action(client, handleResult)
-
-      if (result && result.then) {
-        result.then(function () {
-          handleResult()
-        }, handleResult)
-      }
-    })
+      throw error
+    }
   }

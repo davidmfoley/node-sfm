@@ -1,65 +1,49 @@
 import { DatabaseClient } from './db'
+import { Migration } from './Migration'
 
 const migrationsTableName = 'sfm_migrations'
 
 export default function migrationHistory(client: DatabaseClient) {
-  function ensureMigrationsTableCreated(cb) {
-    client.query(
+  async function ensureMigrationsTableCreated() {
+    await client.query(
       'create table if not exists ' +
         migrationsTableName +
-        '(name varchar, applied timestamp)',
-      cb
+        '(name varchar, applied timestamp)'
     )
   }
 
-  function markAsComplete(name, cb) {
-    client.query(
+  async function markAsComplete(name: string) {
+    await client.query(
       'insert into ' + migrationsTableName + '(name, applied) values($1, $2)',
-      [name, new Date()],
-      function (err) {
-        cb(err)
-      }
+      [name, new Date()]
     )
   }
 
-  function getAppliedMigrations(cb) {
-    client.query(
-      'select applied, name from ' + migrationsTableName + ' order by applied',
-      function (err: any, result) {
-        if (err) {
-          // sfm table not yet setup, no migrations applied
-          if (err.code === '42P01') return cb(undefined, [])
-          return cb(err)
-        }
-        return cb(undefined, result.rows)
-      }
+  async function getAppliedMigrations() {
+    const result = await client
+      .query(
+        'select applied, name from ' + migrationsTableName + ' order by applied'
+      )
+      .catch((err) => {
+        // sfm table not yet setup, no migrations applied
+        if (err.code === '42P01') return { rows: [] }
+        throw err
+      })
+
+    return result.rows
+  }
+
+  async function filterAlreadyApplied(migrations: Migration[]) {
+    const applied = await getAppliedMigrationNames()
+
+    const result = migrations.filter(
+      (migration) => !applied.includes(migration.name)
     )
+    return result
   }
 
-  function filterAlreadyApplied(
-    migrations,
-    cb: (error: Error | undefined, m?: any) => void
-  ) {
-    getAppliedMigrationNames(function (err, applied) {
-      if (err) return cb(err)
-
-      var notYetApplied = migrations.filter(function (migration) {
-        return applied.indexOf(migration.name) === -1
-      })
-
-      cb(undefined, notYetApplied)
-    })
-  }
-
-  function getAppliedMigrationNames(cb) {
-    getAppliedMigrations(function (err, migrations) {
-      if (err) return cb(err)
-      var names = migrations.map(function (row) {
-        return row.name
-      })
-      cb(undefined, names)
-    })
-  }
+  const getAppliedMigrationNames = () =>
+    getAppliedMigrations().then((migrations) => migrations.map((m) => m.name))
 
   return {
     ensureMigrationsTableCreated,

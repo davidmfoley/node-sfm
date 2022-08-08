@@ -1,19 +1,21 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { DatabaseClient } from './db'
 
-function sqlMigration(file, client, cb) {
-  var fs = require('fs')
+const sqlMigration = (file: string) => {
   var contents = fs.readFileSync(file, 'utf-8')
-  client.query(contents, function (err, result) {
-    cb(err, result && { rows: result.rows, rowCount: result.rowCount })
-  })
+  return async (client: DatabaseClient) => {
+    const result = await client.query(contents)
+    return { rows: result.rows, rowCount: result.rowCount }
+  }
 }
 
-function jsMigration(file, client, cb) {
-  var migration = require(file)
-
-  if (typeof migration === 'function') {
-    return migration(client, cb)
+const jsMigration = (file: string) => {
+  const migration = require(file)
+  return async (client: DatabaseClient) => {
+    if (typeof migration === 'function') {
+      return migration(client)
+    }
   }
 }
 
@@ -23,7 +25,7 @@ function buildMigration(file) {
   if (extname === '.sql') {
     return {
       name: path.basename(file),
-      action: sqlMigration.bind(null, file),
+      action: sqlMigration(file),
     }
   }
   if (extname === '.js') {
@@ -34,25 +36,24 @@ function buildMigration(file) {
   }
 }
 
-function isFileWeCareAbout(f) {
+function isFileWeCareAbout(f: string) {
   var extname = path.extname(f)
   return fs.statSync(f).isFile() && (extname === '.sql' || extname === '.js')
 }
 
-export const fileSource = (pathname: string) => (cb) => {
+export const fileSource = (pathname: string) => async () => {
   var path = require('path')
   var fs = require('fs')
 
   if (!fs.existsSync(pathname)) {
-    return cb(new Error('bad path ' + pathname))
+    throw new Error('bad path ' + pathname)
   }
 
-  var files = fs.readdirSync(pathname)
-  files = files.map(function (f) {
-    return path.join(pathname, f)
-  })
-  files = files.filter(isFileWeCareAbout)
-  files.sort()
+  var files = fs
+    .readdirSync(pathname)
+    .map((f: string) => path.join(pathname, f))
+    .filter(isFileWeCareAbout)
+    .sort()
 
-  return cb(undefined, files.map(buildMigration))
+  return files.map(buildMigration)
 }

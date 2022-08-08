@@ -1,34 +1,26 @@
-import async from 'async'
 import { applyMigration } from '../applyMigration'
+import { DatabaseClient } from '../db'
+import { Logger } from '../logger'
 import migrationHistory from '../migrationHistory'
 
-export function runMigrations(client, source, logger, cb) {
+export async function runMigrations(
+  client: DatabaseClient,
+  source: any,
+  logger: Logger
+) {
   const history = migrationHistory(client)
 
-  source(function (err, migrations) {
-    if (err) {
-      return cb(err)
-    }
+  const migrations = await source()
 
-    history.ensureMigrationsTableCreated(function (err) {
-      if (err) return cb(err)
+  await history.ensureMigrationsTableCreated()
 
-      history.filterAlreadyApplied(migrations, function (err, migrations) {
-        if (err) return cb(err)
+  const unapplied = await history.filterAlreadyApplied(migrations)
 
-        async.mapSeries(
-          migrations,
-          applyMigration(client, history, logger),
+  const applier = applyMigration(client, history, logger)
 
-          function (err) {
-            if (err) return cb(err)
+  for (const migration of unapplied) {
+    await applier(migration)
+  }
 
-            cb(undefined, {
-              applied: migrations,
-            })
-          }
-        )
-      })
-    })
-  })
+  return { applied: unapplied }
 }

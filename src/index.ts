@@ -19,26 +19,19 @@ function sfm(url: string, opts?: { logger: Logger }) {
 
   function runner(url: string, source: MigrationSource) {
     return {
-      run: (cb) => {
+      run: async () => {
         logger.start()
-        connect(url)
-          .then(function ({ client, done }) {
-            runMigrations(client, source, logger, function (err, result) {
-              done()
-
-              if (err) {
-                logger.failed(err)
-              } else {
-                logger.complete(result)
-              }
-
-              cb(err, result)
-            })
+        const { client, done } = await connect(url)
+        return await runMigrations(client, source, logger)
+          .then((result) => {
+            logger.complete(result)
+            return result
           })
           .catch((err) => {
             logger.failed(err)
-            cb(err)
+            throw err
           })
+          .finally(() => done())
       },
       test: () => {
         logger.start()
@@ -62,12 +55,10 @@ function sfm(url: string, opts?: { logger: Logger }) {
               })
           )
       },
-      info: async function (cb) {
+      info: async () => {
         const { client, done } = await connect(url)
-        getInfo(client, source, logger, function (err, result) {
-          done()
-          cb(err, result)
-        })
+
+        return await getInfo(client, source, logger).finally(() => done())
       },
     }
   }

@@ -1,8 +1,7 @@
-import { promisify } from 'node:util'
 import { DatabaseClient } from '../db'
 import { Logger } from '../logger'
 import migrationHistory from '../migrationHistory'
-import { AppliedMigration, MigrationResult } from '../migrationResult'
+import { AppliedMigration } from '../migrationResult'
 
 function wrapClient(client: DatabaseClient, logger: Logger): DatabaseClient {
   return {
@@ -26,25 +25,23 @@ export const testMigrations = async (
   source: any,
   logger: Logger
 ) => {
-  const migrations = await promisify(source)()
+  const migrations = await source()
 
   client = wrapClient(client, logger)
   const history = migrationHistory(client)
 
   await client.query('BEGIN;')
 
-  await promisify(history.ensureMigrationsTableCreated)()
+  await history.ensureMigrationsTableCreated()
 
-  const filtered = await promisify(history.filterAlreadyApplied)(migrations)
-  const applied = [] as AppliedMigration
+  const filtered = await history.filterAlreadyApplied(migrations)
+  const applied = [] as AppliedMigration[]
 
   for (let migration of filtered) {
-    const result = await promisify(migration.action)(client).catch(
-      async (err: Error) => {
-        await client.query('ROLLBACK;')
-        throw err
-      }
-    )
+    const result = await migration.action(client).catch(async (err: Error) => {
+      await client.query('ROLLBACK;')
+      throw err
+    })
 
     applied.push({ ...result, name: migration.name })
   }
