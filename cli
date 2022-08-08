@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 var path = require('path');
-var migrations = require('./lib/migrations');
+var migrations = require('./lib');
 var chalk = require('chalk');
 
 var args = process.argv.slice(2);

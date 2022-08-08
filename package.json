@@ -5,8 +5,10 @@
     "sfm": "./cli"
   },
   "description": "simply fabulous migrations for postgresql",
-  "main": "lib/migrations/index.js",
+  "main": "lib/index.js",
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test:watch": "nodemon -q -e ts --exec \"yarn test\" --watch src --watch test",
     "test": "./node_modules/.bin/mocha test/"
   },
   "repository": {
@@ -21,8 +23,27 @@
     "pg": "^8.7.1"
   },
   "devDependencies": {
-    "chai": "^1.9.2",
-    "mocha": "^2.0.0",
-    "mocha-concise-reporter": "1.x"
+    "@types/node": "^18.6.4",
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
+    "mocha-concise-reporter": "1.x",
+    "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.7.4"
+  },
+  "mocha": {
+    "recursive": true,
+    "reporter": "mocha-concise-reporter",
+    "spec": [
+      "test/*.test.ts",
+      "src/**/*.test.ts"
+    ],
+    "extension": [
+      "ts"
+    ],
+    "require": [
+      "source-map-support/register",
+      "ts-node/register"
+    ]
   }
 }

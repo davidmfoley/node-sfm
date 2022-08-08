@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "module": "commonjs",
+    "target": "es6",
+    "esModuleInterop": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "compileOnSave": false,
+  "include": ["src" , "test"]
+}
