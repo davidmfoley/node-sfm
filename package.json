@@ -1,6 +1,6 @@
 {
   "name": "sfm",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "license": "MIT",
   "bin": {
     "sfm": "./cli"
@@ -8,7 +8,7 @@
   "main": "lib/index.js",
   "files": [
     "lib/**/*",
-    "./cli"
+    "cli"
   ],
   "description": "simply fabulous migrations for postgresql",
   "scripts": {
@@ -20,7 +20,7 @@
     "type": "git",
     "url": "https://github.com/davidmfoley/node-sfm.git"
   },
-  "author": "",
+  "author": "davidmfoley@gmail.com",
   "dependencies": {
     "chalk": "^1.1.1",
     "pg": "^8.7.1"
