@@ -2,7 +2,7 @@ import { Logger } from './Logger'
 
 var chalk = require('chalk')
 
-const chalkLogger: Logger = {
+export const chalkLogger: Logger = {
   start: function () {
     log('migrations start')
   },
@@ -37,5 +37,3 @@ function log(message) {
 function now() {
   return new Date().toISOString()
 }
-
-export default chalkLogger

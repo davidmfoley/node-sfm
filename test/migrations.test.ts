@@ -2,21 +2,10 @@
 import { describe, it, beforeEach } from 'mocha'
 import sfm from '../src'
 import assert from 'node:assert'
-import { Logger } from '../src/Logger'
+import { noOpLogger } from '../src/logger'
 var expect = require('chai').expect
 var pg = require('pg')
 var async = require('async')
-
-const noOp = () => {}
-const noOpLogger: Logger = {
-  start: noOp,
-  migrationStart: noOp,
-  migrationComplete: noOp,
-  migrationFailed: noOp,
-  complete: noOp,
-  info: noOp,
-  failed: noOp,
-}
 
 describe('sfm', function () {
   var connectionString =

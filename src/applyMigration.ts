@@ -1,5 +1,5 @@
 import { DatabaseClient } from './db'
-import { Logger } from './Logger'
+import { Logger } from './logger/Logger'
 import { Migration } from './Migration'
 import { MigrationHistory } from './migrationHistory'
 

@@ -1,10 +1,10 @@
-import chalkLogger from './chalkLogger'
+import { chalkLogger } from './logger'
 import { getInfo } from './commands/info'
 import { runMigrations } from './commands/run'
 import { testMigrations } from './commands/test'
 import { connect } from './db'
 import { fileSource } from './fileSource'
-import { Logger } from './Logger'
+import { Logger } from './logger/Logger'
 
 type MigrationSource = any
 
