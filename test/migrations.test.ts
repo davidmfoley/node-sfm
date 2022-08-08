@@ -3,18 +3,18 @@ import { describe, it, beforeEach } from 'mocha'
 import sfm from '../src'
 import assert from 'node:assert'
 import { noOpLogger } from '../src/logger'
-var expect = require('chai').expect
-var pg = require('pg')
+import pg from 'pg'
 
 describe('sfm', function () {
+  let pool: pg.Pool
+
   var connectionString =
     process.env.SFM_TEST_DATABASE_URL || 'postgresql://localhost/sfm_test'
 
   const migrations = sfm(connectionString, { logger: noOpLogger })
 
   beforeEach(async () => {
-    var pool = new pg.Pool({ connectionString })
-
+    pool = new pg.Pool({ connectionString })
     var getTables =
       "select table_name from information_schema.tables where table_schema='public';"
 
@@ -22,6 +22,9 @@ describe('sfm', function () {
     for (const row of result.rows) {
       await pool.query(`DROP TABLE ${row.table_name}`)
     }
+  })
+
+  afterEach(async () => {
     await pool.end()
   })
 
@@ -56,7 +59,7 @@ describe('sfm', function () {
         )
         assert.ok(err.sqlError)
 
-        query('select count(*) as count from foo', function (err, result) {
+        pool.query('select count(*) as count from foo', function (err, result) {
           if (err) return done(err)
           assert.strictEqual(result.rows[0].count, '3')
           done()
@@ -96,11 +99,11 @@ describe('sfm', function () {
     })
 
     it('returns metadata about the migration', function () {
-      expect(result.applied.length).to.equal(2)
+      assert.strictEqual(result.applied.length, 2)
     })
 
     it('handles SQL files', function (done) {
-      query('select * from foo', function (err, result) {
+      pool.query('select * from foo', function (err, result) {
         assert.strictEqual(err.message, 'relation "foo" does not exist')
         done()
       })
@@ -120,21 +123,19 @@ describe('sfm', function () {
     })
 
     it('returns metadata about the migration', function () {
-      expect(result.applied.length).to.equal(2)
+      assert.strictEqual(result.applied.length, 2)
     })
 
-    it('handles SQL files', function (done) {
-      query('select * from foo', function (err, result) {
-        expect(result.rows.length).to.equal(3)
-        done(err)
-      })
+    it('handles SQL files', async () => {
+      const result = await pool.query('select * from foo')
+      assert.strictEqual(result.rows.length, 3)
     })
 
     it('can get info', function (done) {
       migrations
         .fromDirectory(__dirname + '/migrations/sql')
         .info(function (err, info) {
-          expect(info.applied.length).to.equal(2)
+          assert.strictEqual(info.applied.length, 2)
           done(err)
         })
     })
@@ -144,32 +145,17 @@ describe('sfm', function () {
         .fromDirectory(__dirname + '/migrations/sql')
         .run(function (err, rerunResult) {
           if (err) return done(err)
-          expect(rerunResult.applied.length).to.equal(0)
-          query('select * from foo', function (err, result) {
-            expect(result.rows.length).to.equal(3)
-            done(err)
-          })
+          assert.strictEqual(rerunResult.applied.length, 0)
+          done()
         })
     })
   })
-
-  function query(sql, cb) {
-    const client = new pg.Client({ connectionString })
-    client.connect((err) => {
-      if (err) return cb(err)
-      client.query(sql, (err, result) => {
-        client.end()
-        cb(err, result)
-      })
-    })
-  }
 
   it('handles JS files', function (done) {
     migrations
       .fromDirectory(__dirname + '/migrations/js')
       .run(function (err, result) {
-        expect(err).to.equal(undefined)
-        expect(result.applied.length).to.equal(2)
+        assert.strictEqual(result.applied.length, 2)
         done(err)
       })
   })
@@ -178,8 +164,7 @@ describe('sfm', function () {
     migrations
       .fromDirectory(__dirname + '/migrations/js-promise')
       .run(function (err, result) {
-        expect(err).to.equal(undefined)
-        expect(result.applied.length).to.equal(2)
+        assert.strictEqual(result.applied.length, 2)
         done(err)
       })
   })
@@ -188,12 +173,11 @@ describe('sfm', function () {
     migrations
       .fromDirectory(__dirname + '/migrations/js')
       .run(function (err, result) {
-        expect(err).to.equal(undefined)
+        if (err) return done(err)
         migrations
           .fromDirectory(__dirname + '/migrations/js')
           .run(function (err, result) {
-            expect(err).to.equal(undefined)
-            expect(result.applied.length).to.equal(0)
+            assert.strictEqual(result.applied.length, 0)
             done(err)
           })
       })
