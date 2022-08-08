@@ -17,7 +17,6 @@
     "url": "https://github.com/davidmfoley/node-sfm.git"
   },
   "author": "",
-  "license": "All rights reserved",
   "dependencies": {
     "async": "^2.0.1",
     "chalk": "^1.1.1",
