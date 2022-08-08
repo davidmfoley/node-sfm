@@ -1,8 +1,11 @@
+import { Migration } from '../Migration'
+import { MigrationResult } from '../migrationResult'
+
 export interface Logger {
   start: () => void
   migrationStart: (migration: Migration) => void
   migrationComplete: (migration: Migration) => void
-  migrationFailed: (migration: Migration, error: error) => void
+  migrationFailed: (migration: Migration, error: Error) => void
   complete: (result: MigrationResult) => void
   info: (info: string) => void
   failed: (error: Error) => void
