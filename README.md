@@ -22,26 +22,14 @@ Not much to fabulously say about this.
 
 #### 2. Javascript files
 
-Javascript migrations can either use callbacks or promises (async/await).
+Each javascript migration exports one fabulous function that accepts a client and returns a promise:
 
-Each javascript migration exports one fabulous function that has one of the two following signatures:
+The client has a single method: `query` that takes a sql string and optionally an array of parameters:
 
-##### Callbacks
-
-Not preferred, but supported. Upgrade your node version, yo.
-
-```
-module.exports = (client, done) => {
-  client.query('CREATE TABLE whatever (who_cares text)', done);
-}
-```
-
-##### Async/await or promise
-
-If your migration function returns a promise, SFM will wait for that promise to resolve.
-```
+```javascript
 module.exports = async (client) => {
-  await client.query('CREATE TABLE whatever (who_cares text)');
+  await client.query('CREATE TABLE whatever (who_cares text, not_me int)');
+  await client.query('INSERT INTO whatever (who_cares, not_me) VALUES ($1, $2)', ['example', 42])
 }
 ```
 
@@ -57,7 +45,10 @@ The scripts will be sorted alphabetically by filename so use some sort of fabulo
 
 PostgreSQL. What else?
 
-### How do I run this fabulous thing?
+
+## How do I run this fabulous thing?
+
+### On the command-line:
 
 You pass it the following arguments:
 
@@ -95,6 +86,22 @@ This will run all unapplied migrations in a transaction and roll back at the end
 
 ```
 $ sfm test my_local_db db/migrations/
+```
+
+### Run programatically in node:
+
+Import `sfm` and initialize it with the url from your database:
+ 
+```javascript
+const sfm = require('sfm').default;
+
+const databaseUrl = process.env.DATABASE_URL
+
+const migrations = sfm(databaseUrl).fromDirectory(path.join(__dirname, '/migrations')
+
+const result = await migrations.run()
+
+console.log(result)
 ```
 
 ### What about down migrations?

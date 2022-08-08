@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 var path = require('path');
-var migrations = require('./lib');
+var migrations = require('./lib').default;
 var chalk = require('chalk');
 
 var args = process.argv.slice(2);
@@ -18,36 +18,28 @@ if (args[2]) {
   }
 }
 
+function exitSuccess (result) {
+  printResult(result);
+  process.exit();
+}
+
+function logAndExitFailure (err) {
+  console.error(err);
+  return process.exit(1);
+}
+
 var handlers = {
   run: function() {
-    migrations(database).fromDirectory(migrationsPath).run(function(err, result) {
-      if (err) {
-        console.log(err);
-        return process.exit(1);
-      }
-      printResult(result);
-      process.exit();
-    });
+    migrations(database).fromDirectory(migrationsPath).run().then(exitSuccess).catch(logAndExitFailure)
   },
   test: function() {
-    migrations(database).fromDirectory(migrationsPath).test(function(err, result) {
-      if (err) {
-        console.log(err);
-        return process.exit(1);
-      }
-      //printResult(result);
-      process.exit();
-    });
+    migrations(database).fromDirectory(migrationsPath).then( exitSuccess).catch(logAndExitFailure);
   },
   info: function() {
-    migrations(database).fromDirectory(migrationsPath).info(function(err, info) {
-      if (err) {
-        console.log(err);
-        return process.exit(1);
-      }
+    migrations(database).fromDirectory(migrationsPath).info().then(info => {
       printInfo(info);
       process.exit();
-    });
+    }).catch(logAndExitFailure);
   }
 };
 
