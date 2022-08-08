@@ -1,79 +1,53 @@
-import async from 'async'
+import { promisify } from 'node:util'
+import { DatabaseClient } from '../db'
+import { Logger } from '../logger'
 import migrationHistory from '../migrationHistory'
+import { AppliedMigration, MigrationResult } from '../migrationResult'
 
-function wrapClient(client, logger) {
+function wrapClient(client: DatabaseClient, logger: Logger): DatabaseClient {
   return {
-    query: function (sql, params, cb) {
-      if (Array.isArray(params)) {
+    query: async (sql: string, params?: any[]) => {
+      if (params) {
         logger.info(sql, params)
       } else {
         logger.info(sql)
       }
-      if (typeof params === 'function') {
-        cb = params
-        params = []
-      }
 
-      if (typeof cb === 'function') {
-        client.query(sql, params, function (err, result) {
-          if (result && result.rowCount) {
-            console.log(result.rowCount + ' rows affected')
-          }
-          cb(err, result)
-        })
-      } else {
-        return client.query(sql, params).then((result) => {
-          console.log(result.rowCount + ' rows affected')
-          return result
-        })
-      }
+      return client.query(sql, params).then((result) => {
+        logger.info(result.rowCount + ' rows affected')
+        return result
+      })
     },
-  }
+  } as any // TODO
 }
 
-export function testMigrations(client, source, logger, cb) {
-  source(function (err, migrations) {
-    if (err) {
-      return cb(err)
-    }
+export const testMigrations = async (
+  client: DatabaseClient,
+  source: any,
+  logger: Logger
+) => {
+  const migrations = await promisify(source)()
 
-    client = wrapClient(client, logger)
-    const history = migrationHistory(client)
+  client = wrapClient(client, logger)
+  const history = migrationHistory(client)
 
-    client.query('BEGIN;', function (err) {
-      if (err) return cb(err)
+  await client.query('BEGIN;')
 
-      history.ensureMigrationsTableCreated(function (err) {
-        if (err) return cb(err)
+  await promisify(history.ensureMigrationsTableCreated)()
 
-        history.filterAlreadyApplied(migrations, function (err, migrations) {
-          if (err) return cb(err)
-          async.mapSeries(
-            migrations,
-            function (migration, next) {
-              var result = migration.action(client, next)
+  const filtered = await promisify(history.filterAlreadyApplied)(migrations)
+  const applied = [] as AppliedMigration
 
-              if (result && result.then) {
-                result.then(function () {
-                  next()
-                }, next)
-              }
-            },
-            function (err, results) {
-              client.query('ROLLBACK;', function (rollbackErr) {
-                if (err || rollbackErr) {
-                  return cb(err || rollbackErr)
-                }
-                cb(undefined, {
-                  applied: migrations.map(function (m, i) {
-                    return Object.assign({ results: results[i] }, m)
-                  }),
-                })
-              })
-            }
-          )
-        })
-      })
-    })
-  })
+  for (let migration of filtered) {
+    const result = await promisify(migration.action)(client).catch(
+      async (err: Error) => {
+        await client.query('ROLLBACK;')
+        throw err
+      }
+    )
+
+    applied.push({ ...result, name: migration.name })
+  }
+  await client.query('ROLLBACK;')
+  return { applied }
 }

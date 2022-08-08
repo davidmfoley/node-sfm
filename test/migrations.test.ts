@@ -4,6 +4,7 @@ import sfm from '../src'
 import assert from 'node:assert'
 import { noOpLogger } from '../src/logger'
 import pg from 'pg'
+import { MigrationResult } from '../src/migrationResult'
 
 describe('sfm', function () {
   let pool: pg.Pool
@@ -78,15 +79,12 @@ describe('sfm', function () {
   })
 
   describe('test mode', function () {
-    var result
+    let result: MigrationResult
 
-    beforeEach(function (done) {
-      migrations
+    beforeEach(async () => {
+      result = await migrations
         .fromDirectory(__dirname + '/migrations/sql')
-        .test(function (err, result_) {
-          result = result_
-          done(err)
-        })
+        .test()
     })
 
     it('does not commit to the db', function (done) {

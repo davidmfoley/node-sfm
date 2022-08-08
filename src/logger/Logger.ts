@@ -7,6 +7,6 @@ export interface Logger {
   migrationComplete: (migration: Migration) => void
   migrationFailed: (migration: Migration, error: Error) => void
   complete: (result: MigrationResult) => void
-  info: (info: string) => void
+  info: (...info: any[]) => void
   failed: (error: Error) => void
 }

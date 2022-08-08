@@ -19,56 +19,54 @@ function sfm(url: string, opts?: { logger: Logger }) {
 
   function runner(url: string, source: MigrationSource) {
     return {
-      run: function (cb) {
+      run: (cb) => {
         logger.start()
-        connect(url, function (err, client, done) {
-          if (err) {
-            logger.failed(err)
-            return cb(err)
-          }
+        connect(url)
+          .then(function ({ client, done }) {
+            runMigrations(client, source, logger, function (err, result) {
+              done()
 
-          runMigrations(client, source, logger, function (err, result) {
-            done()
+              if (err) {
+                logger.failed(err)
+              } else {
+                logger.complete(result)
+              }
 
-            if (err) {
-              logger.failed(err)
-            } else {
-              logger.complete(result)
-            }
-
-            cb(err, result)
+              cb(err, result)
+            })
           })
-        })
+          .catch((err) => {
+            logger.failed(err)
+            cb(err)
+          })
       },
-      test: function (cb) {
+      test: () => {
         logger.start()
-        connect(url, function (err, client, done) {
-          if (err) {
+
+        return connect(url)
+          .catch((err) => {
             logger.failed(err)
-            return cb(err)
-          }
-
-          testMigrations(client, source, logger, function (err, result) {
-            done()
-
-            if (err) {
-              logger.failed(err)
-            } else {
-              logger.complete(result)
-            }
-
-            cb(err, result)
+            throw err
           })
-        })
+          .then(({ client, done }) =>
+            testMigrations(client, source, logger)
+              .catch((err) => {
+                logger.failed(err)
+                done()
+                throw err
+              })
+              .then((r) => {
+                logger.complete(r)
+                done()
+                return r
+              })
+          )
       },
-      info: function (cb) {
-        connect(url, function (err, client, done) {
-          if (err) return cb(err)
-
-          getInfo(client, source, logger, function (err, result) {
-            done()
-            cb(err, result)
-          })
+      info: async function (cb) {
+        const { client, done } = await connect(url)
+        getInfo(client, source, logger, function (err, result) {
+          done()
+          cb(err, result)
         })
       },
     }

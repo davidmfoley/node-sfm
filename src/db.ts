@@ -4,21 +4,16 @@ export type DatabaseClient = {
   query: pg.Pool['query']
 }
 
-export function connect(
-  url: string,
-  cb: (
-    err: Error | undefined,
-    client?: DatabaseClient,
-    done?: () => void
-  ) => void
-) {
+export async function connect(url: string): Promise<{
+  client?: DatabaseClient
+  done?: () => void
+}> {
   var pool = new pg.Pool({ connectionString: url })
 
-  pool.connect((err, client, done) => {
-    if (err) return cb(err)
-    cb(undefined, client, function () {
-      done()
-      pool.end()
-    })
-  })
+  const client = await pool.connect()
+
+  return {
+    client,
+    done: () => client.release(),
+  }
 }

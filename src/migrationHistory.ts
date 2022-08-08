@@ -35,7 +35,11 @@ export default function migrationHistory(client: DatabaseClient) {
       }
     )
   }
-  function filterAlreadyApplied(migrations, cb) {
+
+  function filterAlreadyApplied(
+    migrations,
+    cb: (error: Error | undefined, m?: any) => void
+  ) {
     getAppliedMigrationNames(function (err, applied) {
       if (err) return cb(err)
 
@@ -43,7 +47,7 @@ export default function migrationHistory(client: DatabaseClient) {
         return applied.indexOf(migration.name) === -1
       })
 
-      cb(null, notYetApplied)
+      cb(undefined, notYetApplied)
     })
   }
 
