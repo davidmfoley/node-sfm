@@ -1,10 +1,10 @@
 import pg from 'pg'
 
-type DBClient = any
+export type DatabaseClient = any
 
 export function connect(
   url: string,
-  cb: (err: Error, client?: DBClient, done?: () => void) => void
+  cb: (err: Error, client?: DatabaseClient, done?: () => void) => void
 ) {
   var pool = new pg.Pool({ connectionString: url })
 

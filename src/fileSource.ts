@@ -39,7 +39,7 @@ function isFileWeCareAbout(f) {
   return fs.statSync(f).isFile() && (extname === '.sql' || extname === '.js')
 }
 
-export function fileSource(pathname: string, cb) {
+export const fileSource = (pathname: string) => (cb) => {
   var path = require('path')
   var fs = require('fs')
 

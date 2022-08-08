@@ -1,6 +1,6 @@
 const migrationsTableName = 'sfm_migrations'
 
-export default function appliedMigrations(client) {
+export default function migrationHistory(client) {
   function ensureMigrationsTableCreated(cb) {
     client.query(
       'create table if not exists ' +
@@ -62,3 +62,5 @@ export default function appliedMigrations(client) {
     markAsComplete,
   }
 }
+
+export type MigrationHistory = ReturnType<typeof migrationHistory>

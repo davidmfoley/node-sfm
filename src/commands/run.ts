@@ -18,7 +18,7 @@ export function runMigrations(client, source, logger, cb) {
 
         async.mapSeries(
           migrations,
-          applyMigration.bind(null, client, history, logger),
+          applyMigration(client, history, logger),
 
           function (err) {
             if (err) return cb(err)

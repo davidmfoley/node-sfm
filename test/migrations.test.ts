@@ -1,19 +1,34 @@
 'use strict'
 import { describe, it, beforeEach } from 'mocha'
-import migrations from '../src'
+import sfm from '../src'
 import assert from 'node:assert'
+import { Logger } from '../src/Logger'
 var expect = require('chai').expect
 var pg = require('pg')
 var async = require('async')
 
-describe('migrations', function () {
+const noOp = () => {}
+const noOpLogger: Logger = {
+  start: noOp,
+  migrationStart: noOp,
+  migrationComplete: noOp,
+  migrationFailed: noOp,
+  complete: noOp,
+  info: noOp,
+  failed: noOp,
+}
+
+describe('sfm', function () {
+  var connectionString =
+    process.env.SFM_TEST_DATABASE_URL || 'postgresql://localhost/sfm_test'
+
+  const migrations = sfm(connectionString, { logger: noOpLogger })
   beforeEach(function (cb) {
-    var connectionString =
-      process.env.SFM_TEST_DATABASE_URL || 'postgresql://localhost/sfm_test'
     var pool = new pg.Pool({ connectionString: connectionString })
 
     var getTables =
       "select table_name from information_schema.tables where table_schema='public';"
+
     pool.query(getTables, function (err, result) {
       if (err) return cb(err)
       async.map(
@@ -35,7 +50,7 @@ describe('migrations', function () {
     process.env.SFM_TEST_DATABASE_URL || 'postgres://localhost/sfm_test'
 
   it('errors with non-existent file path', function (done) {
-    migrations(databaseUrl)
+    migrations
       .fromDirectory(__dirname + '/doesnotexist')
       .run(function (err, result) {
         assert.ok(err)
@@ -44,7 +59,7 @@ describe('migrations', function () {
   })
 
   it('errors when there is a bad migration', function (done) {
-    migrations(databaseUrl)
+    migrations
       .fromDirectory(__dirname + '/migrations/error')
       .run(function (err) {
         assert.ok(err)
@@ -55,9 +70,9 @@ describe('migrations', function () {
   })
 
   it('is transactional when an error occurs', function (done) {
-    migrations(databaseUrl)
+    migrations
       .fromDirectory(__dirname + '/migrations/midpoint-error')
-      .run(function (err, result) {
+      .run(function (err) {
         assert.ok(err)
         assert.strictEqual(
           err.failedMigration,
@@ -74,11 +89,11 @@ describe('migrations', function () {
   })
 
   it('handles empty directory', function (done) {
-    migrations(databaseUrl)
+    migrations
       .fromDirectory(__dirname + '/migrations/empty')
       .run(function (err, result) {
-        expect(err).to.equal(undefined)
-        expect(result.applied.length).to.equal(0)
+        assert.strictEqual(err, undefined)
+        assert.strictEqual(result.applied.length, 0)
         done(err)
       })
   })
@@ -87,7 +102,7 @@ describe('migrations', function () {
     var result
 
     beforeEach(function (done) {
-      migrations(databaseUrl)
+      migrations
         .fromDirectory(__dirname + '/migrations/sql')
         .test(function (err, result_) {
           result = result_
@@ -96,10 +111,10 @@ describe('migrations', function () {
     })
 
     it('does not commit to the db', function (done) {
-      migrations(databaseUrl)
+      migrations
         .fromDirectory(__dirname + '/migrations/sql')
         .info(function (err, info) {
-          expect(info.applied.length).to.equal(0)
+          assert.strictEqual(info.applied.length, 0)
           done(err)
         })
     })
@@ -120,7 +135,7 @@ describe('migrations', function () {
     var result
 
     beforeEach(function (done) {
-      migrations(databaseUrl)
+      migrations
         .fromDirectory(__dirname + '/migrations/sql')
         .run(function (err, result_) {
           result = result_
@@ -140,7 +155,7 @@ describe('migrations', function () {
     })
 
     it('can get info', function (done) {
-      migrations(databaseUrl)
+      migrations
         .fromDirectory(__dirname + '/migrations/sql')
         .info(function (err, info) {
           expect(info.applied.length).to.equal(2)
@@ -149,7 +164,7 @@ describe('migrations', function () {
     })
 
     it('only runs each migration once', function (done) {
-      migrations(databaseUrl)
+      migrations
         .fromDirectory(__dirname + '/migrations/sql')
         .run(function (err, rerunResult) {
           if (err) return done(err)
@@ -174,7 +189,7 @@ describe('migrations', function () {
   }
 
   it('handles JS files', function (done) {
-    migrations(databaseUrl)
+    migrations
       .fromDirectory(__dirname + '/migrations/js')
       .run(function (err, result) {
         expect(err).to.equal(undefined)
@@ -184,7 +199,7 @@ describe('migrations', function () {
   })
 
   it('handles JS files with promises', function (done) {
-    migrations(databaseUrl)
+    migrations
       .fromDirectory(__dirname + '/migrations/js-promise')
       .run(function (err, result) {
         expect(err).to.equal(undefined)
@@ -194,11 +209,11 @@ describe('migrations', function () {
   })
 
   it('executes JS files once', function (done) {
-    migrations(databaseUrl)
+    migrations
       .fromDirectory(__dirname + '/migrations/js')
       .run(function (err, result) {
         expect(err).to.equal(undefined)
-        migrations(databaseUrl)
+        migrations
           .fromDirectory(__dirname + '/migrations/js')
           .run(function (err, result) {
             expect(err).to.equal(undefined)

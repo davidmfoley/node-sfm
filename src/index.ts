@@ -4,8 +4,8 @@ import { runMigrations } from './commands/run'
 import { testMigrations } from './commands/test'
 import { connect } from './db'
 import { fileSource } from './fileSource'
+import { Logger } from './Logger'
 
-type Logger = any
 type MigrationSource = any
 
 function sfm(url: string, opts?: { logger: Logger }) {
@@ -13,7 +13,7 @@ function sfm(url: string, opts?: { logger: Logger }) {
 
   return {
     fromDirectory: function (pathname: string) {
-      return runner(url, fileSource.bind(null, pathname))
+      return runner(url, fileSource(pathname))
     },
   }
 
