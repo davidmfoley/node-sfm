@@ -97,7 +97,7 @@ const sfm = require('sfm').default;
 
 const databaseUrl = process.env.DATABASE_URL
 
-const migrations = sfm(databaseUrl).fromDirectory(path.join(__dirname, '/migrations')
+const migrations = sfm(databaseUrl).fromDirectory(path.join(__dirname, '/migrations'))
 
 const result = await migrations.run()
 
@@ -105,4 +105,5 @@ console.log(result)
 ```
 
 ### What about down migrations?
+
 Fabulous idea, but no.
