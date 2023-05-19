@@ -5,23 +5,30 @@ import { testMigrations } from './commands/test'
 import { connect } from './db'
 import { fileSource } from './fileSource'
 import { Logger } from './logger/Logger'
+import { PoolConfig } from 'pg'
 
 type MigrationSource = any
 
-function sfm(url: string, opts?: { logger: Logger }) {
+function sfm(urlOrConfig: string | PoolConfig, opts?: { logger: Logger }) {
   var logger = (opts || {}).logger || chalkLogger
 
+  let config: PoolConfig
+  if (typeof urlOrConfig === 'string') {
+    config = { connectionString: urlOrConfig }
+  } else {
+    config = urlOrConfig
+  }
   return {
     fromDirectory: function (pathname: string) {
-      return runner(url, fileSource(pathname))
+      return runner(config, fileSource(pathname))
     },
   }
 
-  function runner(url: string, source: MigrationSource) {
+  function runner(config: PoolConfig, source: MigrationSource) {
     return {
       run: async () => {
         logger.start()
-        const { client, done } = await connect(url)
+        const { client, done } = await connect(config)
         return await runMigrations(client, source, logger)
           .then((result) => {
             logger.complete(result)
@@ -36,7 +43,7 @@ function sfm(url: string, opts?: { logger: Logger }) {
       test: () => {
         logger.start()
 
-        return connect(url)
+        return connect(config)
           .catch((err) => {
             logger.failed(err)
             throw err
@@ -56,7 +63,7 @@ function sfm(url: string, opts?: { logger: Logger }) {
           )
       },
       info: async () => {
-        const { client, done } = await connect(url)
+        const { client, done } = await connect(config)
 
         return await getInfo(client, source, logger).finally(() => done())
       },
