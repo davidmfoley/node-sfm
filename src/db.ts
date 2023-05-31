@@ -6,7 +6,7 @@ export type DatabaseClient = {
 
 export async function connect(config: pg.PoolConfig): Promise<{
   client?: DatabaseClient
-  done?: () => void
+  done?: () => Promise<void>
 }> {
   var pool = new pg.Pool(config)
 
@@ -14,6 +14,9 @@ export async function connect(config: pg.PoolConfig): Promise<{
 
   return {
     client,
-    done: () => client.release(),
+    done: () => {
+      client.release()
+      return pool.end()
+    },
   }
 }

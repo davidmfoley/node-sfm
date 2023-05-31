@@ -29,16 +29,16 @@ function sfm(urlOrConfig: string | PoolConfig, opts?: { logger: Logger }) {
       run: async () => {
         logger.start()
         const { client, done } = await connect(config)
-        return await runMigrations(client, source, logger)
-          .then((result) => {
-            logger.complete(result)
-            return result
-          })
-          .catch((err) => {
-            logger.failed(err)
-            throw err
-          })
-          .finally(() => done())
+        try {
+          const result = await runMigrations(client, source, logger)
+          logger.complete(result)
+          return result
+        } catch (err) {
+          logger.failed(err)
+          throw err
+        } finally {
+          done()
+        }
       },
       test: () => {
         logger.start()
