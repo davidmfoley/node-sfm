@@ -62,6 +62,14 @@ Guess what this is? That's right: a fabulous postgresql url!
 
 Defaults to pwd which probably is fabulously stupid so set this fabulous variable.
 
+- optional: schema name.
+
+Allows the use of sfm to independently manage each schema in a databse
+- If a schema name is set:
+  - The schema will be created if it doesn't exist
+  - The postgres search_path will be set to only contain the specified schema for all migrations
+  - the `sfm_migrations` table that holds data about which migrations will live in the specified schema (ie: `my_schema.sfm_migrations`)
+
 ### examples
 
 #### sfm run

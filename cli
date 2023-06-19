@@ -5,7 +5,6 @@ var chalk = require('chalk');
 
 var args = process.argv.slice(2);
 
-
 var command = args[0];
 var database = args[1];
 
@@ -17,6 +16,8 @@ if (args[2]) {
     migrationsPath = path.normalize(path.join(process.cwd(), migrationsPath));
   }
 }
+
+var schema = args[3];
 
 function exitSuccess (result) {
   printResult(result);
@@ -30,13 +31,13 @@ function logAndExitFailure (err) {
 
 var handlers = {
   run: function() {
-    migrations(database).fromDirectory(migrationsPath).run().then(exitSuccess).catch(logAndExitFailure)
+    migrations(database, { schema }).fromDirectory(migrationsPath).run().then(exitSuccess).catch(logAndExitFailure)
   },
   test: function() {
-    migrations(database).fromDirectory(migrationsPath).then( exitSuccess).catch(logAndExitFailure);
+    migrations(database, { schema }).fromDirectory(migrationsPath).then(exitSuccess).catch(logAndExitFailure);
   },
   info: function() {
-    migrations(database).fromDirectory(migrationsPath).info().then(info => {
+    migrations(database, { schema }).fromDirectory(migrationsPath).info().then(info => {
       printInfo(info);
       process.exit();
     }).catch(logAndExitFailure);
@@ -62,7 +63,7 @@ function printInfo(info) {
 var handler = handlers[command];
 
 if (!handler || (command === 'run' && !migrationsPath)) {
-  console.log('Usage: sfm [' + Object.keys(handlers).join('|') + '] [database url] [migrations path]');
+  console.log('Usage: sfm [' + Object.keys(handlers).join('|') + '] [database url] [migrations path] [optional schema]');
   process.exit(1);
 }
 

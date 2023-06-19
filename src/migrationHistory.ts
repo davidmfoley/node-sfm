@@ -1,9 +1,11 @@
 import { DatabaseClient } from './db'
 import { Migration } from './Migration'
 
-const migrationsTableName = 'sfm_migrations'
-
-export default function migrationHistory(client: DatabaseClient) {
+export default function migrationHistory(
+  client: DatabaseClient,
+  schema?: string
+) {
+  const migrationsTableName = `${schema || 'public'}.sfm_migrations`
   async function ensureMigrationsTableCreated() {
     await client.query(
       'create table if not exists ' +

@@ -9,8 +9,14 @@ import { PoolConfig } from 'pg'
 
 type MigrationSource = any
 
-function sfm(urlOrConfig: string | PoolConfig, opts?: { logger: Logger }) {
+interface SfmOptions {
+  logger: Logger
+  schema?: string
+}
+
+function sfm(urlOrConfig: string | PoolConfig, opts?: SfmOptions) {
   var logger = (opts || {}).logger || chalkLogger
+  var schema = (opts || {}).schema || undefined
 
   let config: PoolConfig
   if (typeof urlOrConfig === 'string') {
@@ -30,7 +36,7 @@ function sfm(urlOrConfig: string | PoolConfig, opts?: { logger: Logger }) {
         logger.start()
         const { client, done } = await connect(config)
         try {
-          const result = await runMigrations(client, source, logger)
+          const result = await runMigrations(client, source, logger, schema)
           logger.complete(result)
           return result
         } catch (err) {

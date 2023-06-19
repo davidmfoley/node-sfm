@@ -17,11 +17,11 @@ describe('sfm', function () {
   beforeEach(async () => {
     pool = new pg.Pool({ connectionString })
     var getTables =
-      "select table_name from information_schema.tables where table_schema='public';"
+      "select table_schema, table_name from information_schema.tables where table_schema in ('public', 'example_schema');"
 
     const result = await pool.query(getTables)
     for (const row of result.rows) {
-      await pool.query(`DROP TABLE ${row.table_name}`)
+      await pool.query(`DROP TABLE ${row.table_schema}.${row.table_name}`)
     }
   })
 
@@ -121,6 +121,22 @@ describe('sfm', function () {
         .fromDirectory(__dirname + '/migrations/sql')
         .run()
       assert.strictEqual(rerunResult.applied.length, 0)
+    })
+  })
+
+  describe('specifying schema', function () {
+    it('migrates with serach_path set to the specified schema', async () => {
+      const migrations = sfm(connectionString, {
+        logger: noOpLogger,
+        schema: 'example_schema',
+      })
+      const result = await migrations
+        .fromDirectory(__dirname + '/migrations/sql')
+        .run()
+      assert.strictEqual(result.applied.length, 2)
+
+      const foos = await pool.query(`select * from example_schema.foo`)
+      assert.strictEqual(foos.rows.length, 3)
     })
   })
 
