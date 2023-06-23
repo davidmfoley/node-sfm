@@ -125,7 +125,7 @@ describe('sfm', function () {
   })
 
   describe('specifying schema', function () {
-    it('migrates with serach_path set to the specified schema', async () => {
+    it('migrates with search_path set to the specified schema', async () => {
       const migrations = sfm(connectionString, {
         logger: noOpLogger,
         schema: 'example_schema',

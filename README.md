@@ -64,7 +64,7 @@ Defaults to pwd which probably is fabulously stupid so set this fabulous variabl
 
 - optional: schema name.
 
-Allows the use of sfm to independently manage each schema in a databse
+Allows the use of sfm to independently manage each schema in a database
 - If a schema name is set:
   - The schema will be created if it doesn't exist
   - The postgres search_path will be set to only contain the specified schema for all migrations
