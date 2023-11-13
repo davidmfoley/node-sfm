@@ -131,12 +131,17 @@ describe('sfm', function () {
         schema: 'example_schema',
       })
       const result = await migrations
-        .fromDirectory(__dirname + '/migrations/sql')
+        .fromDirectory(__dirname + '/migrations/sql-other-schema')
         .run()
       assert.strictEqual(result.applied.length, 2)
 
       const foos = await pool.query(`select * from example_schema.foo`)
       assert.strictEqual(foos.rows.length, 3)
+
+      const result2 = await migrations
+        .fromDirectory(__dirname + '/migrations/sql-other-schema')
+        .run()
+      assert.strictEqual(result2.applied.length, 0)
     })
   })
 
