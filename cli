@@ -1,70 +1,92 @@
 #! /usr/bin/env node
-var path = require('path');
-var migrations = require('./lib').default;
-var chalk = require('chalk');
+var path = require('path')
+var migrations = require('./lib').default
+var chalk = require('chalk')
 
-var args = process.argv.slice(2);
+var args = process.argv.slice(2)
 
-var command = args[0];
-var database = args[1];
+var command = args[0]
+var database = args[1]
 
-var migrationsPath;
+var migrationsPath
 if (args[2]) {
-  migrationsPath = path.normalize(args[2]);
+  migrationsPath = path.normalize(args[2])
 
   if (!path.isAbsolute(migrationsPath)) {
-    migrationsPath = path.normalize(path.join(process.cwd(), migrationsPath));
+    migrationsPath = path.normalize(path.join(process.cwd(), migrationsPath))
   }
 }
 
-var schema = args[3];
+var schema = args[3]
 
-function exitSuccess (result) {
-  printResult(result);
-  process.exit();
+function exitSuccess(result) {
+  printResult(result)
+  process.exit()
 }
 
-function logAndExitFailure (err) {
-  console.error(err);
-  return process.exit(1);
+function logAndExitFailure(err) {
+  console.error(err)
+  return process.exit(1)
 }
 
 var handlers = {
-  run: function() {
-    migrations(database, { schema }).fromDirectory(migrationsPath).run().then(exitSuccess).catch(logAndExitFailure)
+  run: function () {
+    migrations(database, { schema })
+      .fromDirectory(migrationsPath)
+      .run()
+      .then(exitSuccess)
+      .catch(logAndExitFailure)
   },
-  test: function() {
-    migrations(database, { schema }).fromDirectory(migrationsPath).then(exitSuccess).catch(logAndExitFailure);
+  test: function () {
+    migrations(database, { schema })
+      .fromDirectory(migrationsPath)
+      .test()
+      .then(exitSuccess)
+      .catch(logAndExitFailure)
   },
-  info: function() {
-    migrations(database, { schema }).fromDirectory(migrationsPath).info().then(info => {
-      printInfo(info);
-      process.exit();
-    }).catch(logAndExitFailure);
-  }
-};
+  info: function () {
+    migrations(database, { schema })
+      .fromDirectory(migrationsPath)
+      .info()
+      .then((info) => {
+        printInfo(info)
+        process.exit()
+      })
+      .catch(logAndExitFailure)
+  },
+}
 
 function printResult(result) {
-  result.applied.map(function(migration) {
+  result.applied.map(function (migration) {
     if (migration.results) {
-      console.log(chalk.white(JSON.stringify(migration.results)));
+      console.log(chalk.white(JSON.stringify(migration.results)))
     }
-  });
+  })
 }
 
 function printInfo(info) {
-  console.log(chalk.magenta('Applied') + '                  | ' + chalk.magenta('Name'));
+  console.log(
+    chalk.magenta('Applied') + '                  | ' + chalk.magenta('Name')
+  )
 
-  info.applied.map(function(migration) {
-    console.log(chalk.green(migration.applied.toISOString()) + ' | ' + chalk.yellow(migration.name));
-  });
+  info.applied.map(function (migration) {
+    console.log(
+      chalk.green(migration.applied.toISOString()) +
+        ' | ' +
+        chalk.yellow(migration.name)
+    )
+  })
 }
 
-var handler = handlers[command];
+var handler = handlers[command]
 
 if (!handler || (command === 'run' && !migrationsPath)) {
-  console.log('Usage: sfm [' + Object.keys(handlers).join('|') + '] [database url] [migrations path] [optional schema]');
-  process.exit(1);
+  console.log(
+    'Usage: sfm [' +
+      Object.keys(handlers).join('|') +
+      '] [database url] [migrations path] [optional schema]'
+  )
+  process.exit(1)
 }
 
-handler(database);
+handler(database)

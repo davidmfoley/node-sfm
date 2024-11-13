@@ -14,7 +14,8 @@ function wrapClient(client: DatabaseClient, logger: Logger): DatabaseClient {
       }
 
       return client.query(sql, params).then((result) => {
-        logger.info(result.rowCount + ' rows affected')
+        if (typeof result.rowCount === 'number')
+          logger.info(result.rowCount + ' rows affected')
         return result
       })
     },
