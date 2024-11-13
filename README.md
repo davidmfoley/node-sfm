@@ -8,7 +8,7 @@ You write fabulous scripts.
 
 This tool runs them and remembers which ones have been run, so each one is only fabulously run once.
 
-All of the scripts are run inside a single transaction.
+Each script is run in a transaction, although this can be disabled for scripts that cannot run inside a transaction.
 
 If there is an error running migration, the migration process is stopped and all migrations are rolled back.
 
@@ -44,7 +44,6 @@ The scripts will be sorted alphabetically by filename so use some sort of fabulo
 ### For which databases?
 
 PostgreSQL. What else?
-
 
 ## How do I run this fabulous thing?
 
@@ -111,6 +110,12 @@ const result = await migrations.run()
 
 console.log(result)
 ```
+
+### Disable transactions for a single migration
+
+Adding the text `@sfm-no-transaction` to the top of the file will disable transactions for that migration.
+
+Note that at present, multi-statement sql files are not supported in no-transaction mode, and also that test mode will halt if it encounters a no-transaction file.
 
 ### What about down migrations?
 

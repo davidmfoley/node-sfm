@@ -9,16 +9,16 @@ export const applyMigration =
     logger.migrationStart(migration)
 
     try {
-      await client.query('BEGIN;')
+      if (migration.transaction) await client.query('BEGIN;')
       await migration.action(client)
       await history.markAsComplete(migration.name)
-      await client.query('COMMIT;')
+      if (migration.transaction) await client.query('COMMIT;')
 
       logger.migrationComplete(migration)
     } catch (err) {
       logger.migrationFailed(migration, err)
 
-      await client.query('ROLLBACK')
+      if (migration.transaction) await client.query('ROLLBACK')
       //TODO: real error
       var error = new Error(
         'Migration failed: ' + migration.name + ':' + err.message

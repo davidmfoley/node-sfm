@@ -1,4 +1,5 @@
 import { DatabaseClient } from '../db'
+import { NoTransactionInTestMode } from '../errors'
 import { Logger } from '../logger'
 import migrationHistory from '../migrationHistory'
 import { AppliedMigration } from '../migrationResult'
@@ -23,12 +24,13 @@ function wrapClient(client: DatabaseClient, logger: Logger): DatabaseClient {
 export const testMigrations = async (
   client: DatabaseClient,
   source: any,
-  logger: Logger
+  logger: Logger,
+  schema: string
 ) => {
   const migrations = await source()
 
   client = wrapClient(client, logger)
-  const history = migrationHistory(client)
+  const history = migrationHistory(client, schema)
 
   await client.query('BEGIN;')
 
@@ -38,6 +40,11 @@ export const testMigrations = async (
   const applied = [] as AppliedMigration[]
 
   for (let migration of filtered) {
+    if (!migration.transaction) {
+      await client.query('ROLLBACK;')
+      throw new NoTransactionInTestMode(migration.name)
+    }
+
     const result = await migration.action(client).catch(async (err: Error) => {
       await client.query('ROLLBACK;')
       throw err

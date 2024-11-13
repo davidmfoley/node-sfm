@@ -1,6 +1,11 @@
 'use strict'
 import { describe, it, beforeEach } from 'mocha'
 import sfm from '../src'
+import {
+  MultipleStatementsNotSupported,
+  NoTransactionInTestMode,
+} from '../src/errors'
+
 import assert from 'node:assert'
 import { noOpLogger } from '../src/logger'
 import pg from 'pg'
@@ -56,6 +61,63 @@ describe('sfm', function () {
     assert.strictEqual(result.rows[0].count, '3')
   })
 
+  describe('disable transactions', () => {
+    it('can disable transaction with @sfm-no-transaction', async () => {
+      await migrations
+        .fromDirectory(__dirname + '/migrations/no-transaction')
+        .run()
+
+      const result = await pool.query('select count(*) as count from foo')
+      assert.strictEqual(result.rows[0].count, '0')
+    })
+
+    it('halts test mode if a no-transaction migration exists', async () => {
+      await assert.rejects(
+        () =>
+          migrations
+            .fromDirectory(__dirname + '/migrations/no-transaction')
+            .test(),
+        (error: any) => {
+          assert(error instanceof NoTransactionInTestMode)
+          assert.match(error.message, /002\-add\-index\.sql/)
+          return true
+        }
+      )
+    })
+
+    it('has transaction: false when content contains disabling pragma', async () => {
+      const { unapplied } = await migrations
+        .fromDirectory(__dirname + '/migrations/no-transaction')
+        .info()
+
+      assert.equal(unapplied[0].transaction, true)
+      assert.equal(unapplied[1].transaction, false)
+      assert.equal(unapplied[2].transaction, false)
+    })
+
+    it('rejects with info on multiple statement sql file with @sfm-no-transaction', async () => {
+      assert.rejects(
+        () =>
+          migrations
+            .fromDirectory(
+              __dirname + '/migrations/no-transaction-with-multiple-statements'
+            )
+            .run(),
+        MultipleStatementsNotSupported
+      )
+    })
+
+    it('sets transaction flag to false', async () => {
+      const { unapplied } = await migrations
+        .fromDirectory(
+          __dirname + '/migrations/no-transaction-with-multiple-statements'
+        )
+        .info()
+
+      assert.equal(unapplied[0].transaction, false)
+    })
+  })
+
   it('handles empty directory', async () => {
     const result = await migrations
       .fromDirectory(__dirname + '/migrations/empty')
@@ -71,7 +133,6 @@ describe('sfm', function () {
         .fromDirectory(__dirname + '/migrations/sql')
         .test()
     })
-
     it('does not commit to the db', async () => {
       const info = await migrations
         .fromDirectory(__dirname + '/migrations/sql')

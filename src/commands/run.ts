@@ -11,7 +11,6 @@ export async function runMigrations(
 ) {
   if (schema) {
     await client.query(`CREATE SCHEMA IF NOT EXISTS ${schema}`)
-    //await client.query(`SET search_path to ${schema}`)
   }
 
   const history = migrationHistory(client, schema)

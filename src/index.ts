@@ -13,7 +13,6 @@ interface SfmOptions {
   logger: Logger
   schema?: string
 }
-
 function sfm(urlOrConfig: string | PoolConfig, opts?: SfmOptions) {
   var logger = (opts || {}).logger || chalkLogger
   var schema = (opts || {}).schema || undefined
@@ -46,27 +45,20 @@ function sfm(urlOrConfig: string | PoolConfig, opts?: SfmOptions) {
           done()
         }
       },
-      test: () => {
+      test: async () => {
         logger.start()
 
-        return connect(config)
-          .catch((err) => {
-            logger.failed(err)
-            throw err
-          })
-          .then(({ client, done }) =>
-            testMigrations(client, source, logger)
-              .catch((err) => {
-                logger.failed(err)
-                done()
-                throw err
-              })
-              .then((r) => {
-                logger.complete(r)
-                done()
-                return r
-              })
-          )
+        const { client, done } = await connect(config)
+        try {
+          const result = await testMigrations(client, source, logger, schema)
+          logger.complete(result)
+          return result
+        } catch (err) {
+          logger.failed(err)
+          throw err
+        } finally {
+          done()
+        }
       },
       info: async () => {
         const { client, done } = await connect(config)

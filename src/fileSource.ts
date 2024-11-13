@@ -19,6 +19,11 @@ const jsMigration = (file: string) => {
   }
 }
 
+const needsTransaction = (path: string) => {
+  const content = fs.readFileSync(path, 'utf-8')
+  return !/\@sfm\-no\-transaction/g.test(content)
+}
+
 function buildMigration(file) {
   var path = require('path')
   var extname = path.extname(file)
@@ -26,12 +31,14 @@ function buildMigration(file) {
     return {
       name: path.basename(file),
       action: sqlMigration(file),
+      transaction: needsTransaction(file),
     }
   }
   if (extname === '.js') {
     return {
       name: path.basename(file),
       action: jsMigration.bind(null, file),
+      transaction: needsTransaction(file),
     }
   }
 }
