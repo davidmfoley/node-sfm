@@ -25,7 +25,7 @@
     "chalk": "^1.1.1"
   },
   "peerDependencies": {
-    "pg": ">8"
+    "pg": "^8.0.0"
   },
   "devDependencies": {
     "@types/mocha": "^9.1.1",
